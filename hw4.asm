@@ -33,11 +33,11 @@ print_tree:
     move $a0, $t0 # copy left child to a0, must perserve when return 
     jal print_tree 
     
-    # restore 
-    lw $a0, 4($sp)    
+    # set a0 back to current
+    lw $a0, 4($sp)
     
     # print int value
-    lw $t1, 0($a0) # save int value into $t1 (index 0)
+    lw $t1, 0($a0) # load (because array) int value into $t1 (index 0)
     move $a0, $t1 # $a0 = current value 
     li $v0, 1 # load print integer
     syscall # prints current int value
@@ -47,26 +47,38 @@ print_tree:
     li $v0, 4 # load print string
     syscall
     
-    # restore
+    # set a0 back to current
     lw $a0, 4($sp)
     
     # print parent
+    lw $t2, 16($a0) # t2 = parent address
+    # if t2 == 0 (at root parent is 0 or None)
+    beq $t2, $0, handle_root
+    # else has a parent 
+    lw $t3, 0($t2) # t3 = parents value 
+    move $a0, $t3 # a0 = parent value
+    j parent_print
     
+handle_root:
+    move $a0, $0
+parent_print:
+    li $v0, 1 # load print integer
+    syscall
     
     # restore 
     lw $a0, 4($sp)
     
     # print color
     lw  $t1, 16($a0) # color (index 4) $t1 = 0 if black, $t1 = 1 if red
-    beq $t1, $0, handle_black 
+    beq $t1, $0, handle_black # if t1 == 0
     # else: execute for red
     la $a0, color_red
-    j common_print # avoid repetitive code
+    j color_print # avoid repetitive code
     	
 handle_black:
     la $a0, color_black
     
-common_print:
+color_print:
     li $v0, 4 # print char
     syscall
     
