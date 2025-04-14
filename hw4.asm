@@ -19,13 +19,72 @@ color_black: .asciiz "B"
 # Arguments: 
 #   $a0 - pointer to root
 # Returns: void
-
 print_tree:
+    # base case node is 0
+    beq $a0, $zero, print_tree_end
+    
     # Prologue
+    addi $sp, $sp, -8
+    sw $a0, 4($sp) # store argument 
+    sw $ra, 0($sp) # store ra
+    
+    # recursive call on left child
+    lw $t0, 4($a0) # left child is index 1
+    move $a0, $t0 # copy left child to a0, must perserve when return 
+    jal print_tree 
+    
+    # restore 
+    lw $a0, 4($sp)
+    
+    # print int value
+    lw $t1, 0($a0) # save int value into $t1 (index 0)
+    move $a0, $t1 # $a0 = current value 
+    li $v0, 1 # load print integer
+    syscall # prints current int value
+    
+    # print left parenthesis
+    la $a0, lparen
+    li $v0, 4 # load print string
+    syscall
+    
+     # print parent
+    
+    # print color
+    lw  $t1, 16($a0) # color (index 4) $t1 = 0 if black, $t1 = 1 if red
+    beq $t1, $0, handle_black 
+    # else: execute for red
+    la $a0, color_red
+    j common_print # avoid repetitive code
+    	
+handle_black:
+    la $a0, color_black
+    
+common_print:
+    li $v0, 11 # print char
+    syscall
+    
+    # print right parenthesis
+    la $a0, rparen_space
+    li $v0, 4 # load print string
+    syscall
+    	
+    # restore $a0 to be argument
+    lw $a0, 4($sp)
+    
+    # recursive call on right child
+    lw $t0, 8($a0) # load right child
+    move $a0, $t0
+    jal print_tree 
+    
+    # restore registers and return
+    lw $a0, 4($sp) 
+    lw $ra, 0($sp)
+    addi $sp, $sp, 8
 
 print_tree_end:
     # Epilogue
-    jr $ra # return
+    jr $ra
+    
 
 # Function: search_node
 # Arguments: 
