@@ -1,38 +1,123 @@
 .data
-# testing msg if node search found or did not find something
-node_found_msg: .asciiz "Node found\n"
-not_found_msg:  .asciiz "Not found\n"
-pointer_msg:  .asciiz " Is at Address: 0x"
+space: .asciiz " "    # Space character for printing between numbers
+newline: .asciiz "\n" # Newline character
+extra_newline: .asciiz "\n\n" # Extra newline at end
 
-# for testing purposes only with prebuilt tree (since dont have insert yet) (bottom-up)
-# Level 3 leaves
-node1: .word 1, 0, 0, 0, node3 # black leaf
-node4: .word 4, 0, 0, 0, node3 # black leaf
-node6: .word 6, 0, 0, 0, node8 # black leaf
-node9: .word 10, 0, 0, 0, node8 # black leaf
-
-# Level 2 internal
-node3: .word 3, node1, node4, 1, root # red internal node
-node8: .word 8, node6, node9, 1, root # red internal node
-
-# Level 1 (root)
-root: .word 5, node3, node8, 0, 0# root, MUST be black
+# red-black data
+lparen: .asciiz "("
+rparen_space: .asciiz ") "
+color_red: .asciiz "R"
+color_black: .asciiz "B"
 
 .text
-.globl main
-# Function: main
-main:
-    la $a0, root
-    jal print_tree
+.globl print_tree 
+.globl search_node
+.globl insert_node
 
-debug_done:
-    # Exit program
-    li $v0, 10
+# Function: print_tree
+# Print all the values and colors with in-order traversal (format: value, left, right, color)
+# Arguments: 
+#   $a0 - pointer to root
+# Returns: void
+print_tree:
+    # Base case node is 0
+    beq $a0, $zero, print_tree_end
+    
+    # Prologue
+    addi $sp, $sp, -8
+    sw $a0, 4($sp) # store argument 
+    sw $ra, 0($sp) # store ra
+    
+    # recursive call on left child
+    lw $t0, 4($a0) # left child is index 1
+    move $a0, $t0 # copy left child to a0, must perserve when return 
+    jal print_tree 
+    
+    # restore 
+    lw $a0, 4($sp)    
+    
+    # print int value
+    lw $t1, 0($a0) # save int value into $t1 (index 0)
+    move $a0, $t1 # $a0 = current value 
+    li $v0, 1 # load print integer
+    syscall # prints current int value
+    
+    # print left parenthesis
+    la $a0, lparen
+    li $v0, 4 # load print string
     syscall
+    
+    # restore
+    lw $a0, 4($sp)
+    
+    # print parent
+    
+    
+    # restore 
+    lw $a0, 4($sp)
+    
+    # print color
+    lw  $t1, 16($a0) # color (index 4) $t1 = 0 if black, $t1 = 1 if red
+    beq $t1, $0, handle_black 
+    # else: execute for red
+    la $a0, color_red
+    j common_print # avoid repetitive code
+    	
+handle_black:
+    la $a0, color_black
+    
+common_print:
+    li $v0, 4 # print char
+    syscall
+    
+    # print right parenthesis
+    la $a0, rparen_space
+    li $v0, 4 # load print string
+    syscall
+    	
+    # restore $a0 to be argument
+    lw $a0, 4($sp)
+    
+    # recursive call on right child
+    lw $t0, 8($a0) # load right child
+    move $a0, $t0
+    jal print_tree 
+    
+    # restore registers and return
+    lw $a0, 4($sp) 
+    lw $ra, 0($sp)
+    addi $sp, $sp, 8
 
+print_tree_end:
+    # Epilogue
+    jr $ra
+    
 
-.data
-.asciiz "This is Professor Benz's extra space that is being used for preserving memory contents to avoid losing data"
-# The below file contains your code
-.include "hw4.asm"
+# Function: search_node
+# Arguments: 
+#   $a0 - pointer to root
+#   $a1 - value to find
+# Returns:
+#   $v0 : -1 if not found, else pointer to node
 
+search_node:
+    # Function prologue
+	
+	
+search_node_end:	
+	#Function Epilogue
+	jr $ra
+
+# Function: insert_node
+# Arguments: 
+#   $a0 - pointer to root
+#   $a1 - value to insert
+# Returns: 
+#	$v0 - pointer to root
+
+insert_node:
+	# Function prologue
+
+insert_node_done:
+	#Function Epilogue
+    jr $ra
