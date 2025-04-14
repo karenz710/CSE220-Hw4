@@ -69,7 +69,7 @@ parent_print:
     lw $a0, 4($sp)
     
     # print color
-    lw  $t1, 16($a0) # color (index 4) $t1 = 0 if black, $t1 = 1 if red
+    lw  $t1, 12($a0) # color (index 4) $t1 = 0 if black, $t1 = 1 if red
     beq $t1, $0, handle_black # if t1 == 0
     # else: execute for red
     la $a0, color_red
