@@ -106,19 +106,45 @@ print_tree_end:
     
 
 # Function: search_node
+# This is a Binary Search Tree so if greater than search right, less than search left (
+# use iteration
 # Arguments: 
-#   $a0 - pointer to root
-#   $a1 - value to find
+#   $a0 - pointer to root (perserve) 
+#   $a1 - value to find	(perserve)
 # Returns:
 #   $v0 : -1 if not found, else pointer to node
 
 search_node:
     # Function prologue
-	
-	
+    move $t0, $a0 # $t0 = curr_node. Initialize curr_node = root 
+loop:
+    # first check if curr_node is NULL then curr_val DNE 
+    beq $t0, $0, no_value_found
+    
+    lw $t1, 0($t0) # t1 = val at index 0 of curr_node
+    beq $t1, $a1, value_found
+    
+    # if target < curr val, go left; otherwise, go right
+    blt $a1, $t1, search_left 
+    # else go right
+    lw $t0, 8($t0)
+    j loop
+    
+search_left:
+    lw $t0, 4($t0)
+    j loop
+    
+no_value_found:
+    li $v0, -1
+    j search_node_end
+
+value_found: 
+    move $v0, $t0
+    j search_node_end
+    	
 search_node_end:	
-	#Function Epilogue
-	jr $ra
+    #Function Epilogue
+    jr $ra
 
 # Function: insert_node
 # Arguments: 
