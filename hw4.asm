@@ -257,7 +257,11 @@ r_case2:
     move $s0, $v0
     move $t5, $t6
 r_after:
-    # recolor and rotate left(gp)
+    # recolor and rotate left(gp)  
+    # recolor new parent black
+    lw   $t9, 16($t5)
+    li   $t1, 0
+    sw   $t1, 12($t9)                
     # recolor grandparent
     li $t1, 1
     sw $t1, 12($t8)
@@ -265,7 +269,7 @@ r_after:
     move $a1, $t8
     jal left_rotate
     move $s0, $v0
-    j fixup_loop
+    j fixup_done
 
 l_case:
     # left?side cases
@@ -293,6 +297,11 @@ l_case2:
     move $t5, $t6
 l_after:
     # recolor and rotate right(gp)
+    # recolor new parent black
+    lw   $t9, 16($t5)
+    li   $t1, 0
+    sw   $t1, 12($t9) 
+    
     # recolor grandparent
     li $t1, 1
     sw $t1, 12($t8)
@@ -300,7 +309,7 @@ l_after:
     move $a1, $t8
     jal right_rotate
     move $s0, $v0
-    j fixup_loop
+    j fixup_done
 
 fixup_done:
     # change root to BLACK
