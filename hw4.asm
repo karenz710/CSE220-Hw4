@@ -274,7 +274,7 @@ l_case:
     lw $t7, 12($t9)
     li $t1, 1
     bne $t7, $t1, l_case2
-    # l_case1: parent+uncle RED ? recolor and move up
+    # l_case1: parent+uncle RED recolor and move up
     li $t1, 0
     sw $t1, 12($t6)
     sw $t1, 12($t9)
@@ -399,6 +399,7 @@ LR2:
     sw $t0, 8($t1) # x->right = y
     sw $t1, 16($t0) # y->parent = x
 
+    move $s0, $t1 # x is new subtree root
     move $v0, $s0 # return root
 
     lw $ra, 4($sp)
