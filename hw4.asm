@@ -21,7 +21,7 @@ color_black: .asciiz "B"
 # Returns: void
 print_tree:
     # Base case node is 0 then no value was found
-    beq $a0, $zero, print_tree_end
+    beq $a0, $0, print_tree_end
     
     # Prologue
     addi $sp, $sp, -8
@@ -178,11 +178,11 @@ insert_node:
     
     # ordinary BST-insert
     move $t2, $0 # t2 = parent = NULL
-    move $t3 $s0 # t3 = current = root
+    move $t3, $s0 # t3 = current = root
 
 # traverse the BST
 BST_loop:
-    beq $t3, $zero, link_node # finish loop 
+    beq $t3, $0, link_node # finish loop 
     move $t2, $t3 # set parent = current
     lw $t4, 0($t3) # t4 = current->val
     blt $a1, $t4, go_left # if $a1 < $t4 .go_left if val to insert < current
@@ -232,13 +232,13 @@ fixup_loop:
     # is parent a left child?
     lw $t9, 4($t8)       
     beq $t9, $t6, l_case
-    # right‐side cases 
+    # right side cases 
     lw $t9, 4($t8) # uncle = gp->left
-    beq $t9, $zero, r_case2
+    beq $t9, $0, r_case2
     lw $t7, 12($t9)
     li $t1, 1
     bne $t7, $t1, r_case2
-    # r_case1: parent+uncle RED → recolor and move up
+    # r_case1: parent+uncle RED ? recolor and move up
     li $t1, 0
     sw $t1, 12($t6)
     sw $t1, 12($t9)
@@ -248,7 +248,7 @@ fixup_loop:
     j fixup_loop
     
 r_case2:
-    # if x is left child → rotate right(parent)
+    # if x is left child ? rotate right(parent)
     lw $t7, 4($t6)
     bne $t7, $t5, r_after
     move $a0, $s0
@@ -258,9 +258,8 @@ r_case2:
     move $t5, $t6
 r_after:
     # recolor and rotate left(gp)
-    li $t1, 0
-    sw $t1, 12($t6)
-    li $t1,     1
+    # recolor grandparent
+    li $t1, 1
     sw $t1, 12($t8)
     move $a0, $s0
     move $a1, $t8
@@ -269,13 +268,13 @@ r_after:
     j fixup_loop
 
 l_case:
-    # left‐side cases
+    # left?side cases
     lw $t9, 8($t8)  # uncle = gp->right
     beq $t9, $0, l_case2
     lw $t7, 12($t9)
     li $t1, 1
     bne $t7, $t1, l_case2
-    # l_case1: parent+uncle RED → recolor and move up
+    # l_case1: parent+uncle RED ? recolor and move up
     li $t1, 0
     sw $t1, 12($t6)
     sw $t1, 12($t9)
@@ -284,7 +283,7 @@ l_case:
     move $t5, $t8
     j fixup_loop
 l_case2:
-    # if x is right child → rotate left(parent)
+    # if x is right child ? rotate left(parent)
     lw $t7, 8($t6)
     bne $t7, $t5, l_after
     move $a0, $s0
@@ -294,8 +293,7 @@ l_case2:
     move $t5, $t6
 l_after:
     # recolor and rotate right(gp)
-    li $t1, 0
-    sw $t1, 12($t6)
+    # recolor grandparent
     li $t1, 1
     sw $t1, 12($t8)
     move $a0, $s0
@@ -305,9 +303,9 @@ l_after:
     j fixup_loop
 
 fixup_done:
-    # ensure root is BLACK
-    li    $t1,     0
-    sw    $t1,    12($s0)
+    # change root to BLACK
+    li $t1, 0
+    sw $t1, 12($s0)
    
 insert_node_done:
     move $v0, $s0 # return the root inside reg $v0
@@ -342,7 +340,7 @@ LL1:
     lw $t3, 16($t0)
     sw $t3, 16($t1)
 
-    # re‐link y into the tree above x
+    # relink y into the tree above x
     beq $t3, $0, LL2 # if x was root, y becomes root
     lw $t4, 4($t3)
     beq $t4, $t0, LL3 # if x was left child
@@ -388,7 +386,7 @@ LR1:
     lw $t3, 16($t0)
     sw $t3, 16($t1)
 
-    # re‐link x into the tree above y
+    # relink x into the tree above y
     beq $t3, $0, LR2
     lw $t4, 8($t3)
     beq $t4, $t0, LR3 # if y was right child
