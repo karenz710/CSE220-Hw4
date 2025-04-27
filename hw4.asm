@@ -343,30 +343,38 @@ left_rotate:
     # x->right = y->left; x's right node becomes y's left child 
     lw $t2, 4($t1) # t2 = y->left
     sw $t2, 8($t0) # set x's child to t2
+    bne  $t2, $0, L0 # if y-> left not NULL fix parent ptr
+    j L1 # else don't fix parent ptr
     
-    # if (y->left != null) y->left->parent = x 
-    beq $t2, $0, LL1
+L0:
     sw $t0, 16($t2)
-LL1:
+L1:
     # y->parent = x->parent
-    lw $t3, 16($t0)
+    lw $t3, 16($t0) 
     sw $t3, 16($t1)
 
     # relink y into the tree above x
-    beq $t3, $0, LL2 # if x was root, y becomes root
+    beq $t3, $0, L_make_root # if x was root, y becomes root
+    
+    # else reattach as l or r child of x's old parent
     lw $t4, 4($t3)
     beq $t4, $t0, LL3 # if x was left child
     sw $t1, 8($t3) # else x was right child
     j LL2
+    
 LL3:
     sw $t1, 4($t3)
+    j LL2
+    
+L_make_root:
+    move $s0, $t1 # new root = y 
+    
 LL2:
     # complete the rotation
     sw $t0, 4($t1) # y->left = x
     sw $t1, 16($t0) # x->parent = y
     
-    move $s0, $t1 
-    move  $v0, $s0 # return root
+    move  $v0, $s0 # return root which was possibly updated (whole root of tree)
 
     lw $ra, 4($sp) 
     lw $s0, 0($sp) # restore $s0 
@@ -391,28 +399,35 @@ right_rotate:
     lw $t2, 8($t1)# t2 = x->right
     sw $t2, 4($t0)
     # if (x->right != NULL) x->right->parent = y
-    beq $t2, $0, LR1
+    bne $t2, $0, R0 # fix parent
+    j R1
+R0:
     sw $t0, 16($t2)
-LR1:
+R1:
     # x->parent = y->parent
     lw $t3, 16($t0)
     sw $t3, 16($t1)
 
+
     # relink x into the tree above y
-    beq $t3, $0, LR2
+    beq $t3, $0, R_make_root
+    # else
     lw $t4, 8($t3)
     beq $t4, $t0, LR3 # if y was right child
     sw $t1, 4($t3) # else y was left child
     j LR2
 LR3:
-    sw $t1, 8($t3)
+    sw $t1, 8($t3) # parent-> right = x
+    
+R_make_root:
+    move $s0, $t1 # whole new root = x
+    
 LR2:
     # finalize rotation
     sw $t0, 8($t1) # x->right = y
     sw $t1, 16($t0) # y->parent = x
 
-    move $s0, $t1 # x is new subtree root
-    move $v0, $s0 # return root
+    move $v0, $s0 # return root which might have been updated.
 
     lw $ra, 4($sp)
     lw $s0, 0($sp)
